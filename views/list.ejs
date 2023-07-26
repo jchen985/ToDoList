@@ -1,0 +1,33 @@
+<%- include("header") -%>
+
+<div class="box" id="heading">
+    <h1>
+        <%= listTitle%>
+    </h1>
+</div>
+
+<div class="box">
+    <!-- display array of todo list items using for loop and EJS -->
+    <ul>
+        <% for (var i=0; i < newListItems.length; i++){ %>
+            <div class="item">
+                <!-- using check box instead of bullet points -->
+                <input type="checkbox">
+                <p>
+                    <%= newListItems[i] %>
+                </p>
+            </div>
+            <% } %>
+    </ul>
+
+    <form class="item" action="/" method="post">
+        <!-- placeholder for input indicator -->
+        <!-- autocomplete turned off (no auto suggestions) -->
+        <input type="text" id="todo" name="newItem" placeholder="New Item" autocomplete="off">
+        <!-- the name and value attribute helps us to determine which list to add item to -->
+        <button type="submit" name="list" value="<%= listTitle %>">+</button>
+    </form>
+
+</div>
+
+<%- include("footer") -%>
