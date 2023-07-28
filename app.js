@@ -11,11 +11,23 @@ app.use(express.static("public"));  // tell Express to serve static resources (C
 
 /* connect to MongoDB server 
  (other processes wait for it to finish) */
-async function connectDB() {
-    await mongoose.connect(dbServer).then(() => {
-        console.log("DB connected")}).catch((err) => {
-            console.log(err)});
-}
+
+mongoose.connect(dbServer);
+const db = mongoose.connection;
+
+db.on("error", () => {
+  console.error.bind(console, 'MongoDB connection error:')
+})
+
+db.on("open", () => {
+  console.log("database running successfully");
+})
+
+// async function connectDB() {
+//     await mongoose.connect(dbServer).then(() => {
+//         console.log("DB connected")}).catch((err) => {
+//             console.log(err)});
+// }
 
 const itemSchema = {
     name: {
@@ -26,51 +38,20 @@ const itemSchema = {
 
 const Item = mongoose.model("Item", itemSchema);
 
-const defaultItems = [
-    {name: "Welcome to your todolist"}, 
-    {name: "Hit the + button to add a new item"}, 
-    {name: "<-- Hit this to delete an item"}
-];
+// const defaultItems = [
+//     {name: "Welcome to your todolist"}, 
+//     {name: "Hit the + button to add a new item"}, 
+//     {name: "<-- Hit this to delete an item"}
+// ];
 
-createManyItems(defaultItems);
+// createManyItems(defaultItems);
 
 /* Create items and save into DB */
-async function createManyItems (items) {
-    try {
-        await connectDB();
-        const savedItems = await Item.create(items);
-        return savedItems;
-    } catch (error) {
-        console.log(error);
-    } finally {
-        mongoose.connection.close();
-    }
-}
-
-// newItem ("Welcome to your todolist");
-// newItem ("Hit the + button to add a new item");
-// newItem ("<-- Hit this to delete an item");
-
-/* Create Default items
-    insert them into todolistDB
- */
-// async function saveDefault (defaultItems) {
-//     await defaultItems.array.forEach(item => {
-//         newItem(item);
-//     });
-// }
-
-/* Create new Item of todolist 
-    and insert into todolistDB
-*/
-// async function newItem (name) {
-//     const item = new Item ({
-//         name: name
-//     });
-//     console.log("inserting " + item);
-
+// async function createManyItems (items) {
 //     try {
-//         await insert (item);
+//         await connectDB();
+//         const savedItems = await Item.create(items);
+//         return savedItems;
 //     } catch (error) {
 //         console.log(error);
 //     } finally {
@@ -78,30 +59,72 @@ async function createManyItems (items) {
 //     }
 // }
 
+// newItem ("Welcome to your todolist");
+// newItem ("Hit the + button to add a new item");
+// newItem ("<-- Hit this to delete an item");
+
+const defaultItems = [
+    "Welcome to your todolist", 
+    "Hit the + button to add a new item", 
+    "<-- Hit this to delete an item"
+];
+
+saveDefault(defaultItems);
+
+/* Create Default items
+    insert them into todolistDB
+ */
+async function saveDefault (defaultItems) {
+    await defaultItems.forEach(item => {
+        newItem(item);
+    });
+}
+
+/* Create new Item of todolist 
+    and insert into todolistDB
+*/
+async function newItem (name) {
+    const item = new Item ({
+        name: name
+    });
+    console.log("inserting " + item);
+
+    try {
+        await insert (item);
+    } catch (error) {
+        console.log(error);
+    }
+    // finally {
+    //     mongoose.connection.close();
+    // }
+}
+
 /* Insert Single or Multiple Items */
-// async function insert (items){
-//     if (Array.isArray(items)) {
-//         try {
-//             await connectDB();
-//             await Item.insertMany(items);
-//             console.log("Successfule insertion");
-//         } catch (error) {
-//             console.log(error);
-//         } finally {
-//             mongoose.connection.close();
-//         }
-//     } else {
-//         try {
-//             await connectDB();
-//             await items.save();
-//             console.log("Successfule insertion");
-//         } catch (error) {
-//             console.log(error);
-//         } finally {
-//             mongoose.connection.close();
-//         }
-//     }
-// }
+async function insert (items){
+    if (Array.isArray(items)) {
+        try {
+            // await connectDB();
+            await Item.insertMany(items);
+            console.log("Successfule insertion");
+        } catch (error) {
+            console.log(error);
+        } 
+        // finally {
+        //     mongoose.connection.close();
+        // }
+    } else {
+        try {
+            // await connectDB();
+            await items.save();
+            console.log("Successfule insertion");
+        } catch (error) {
+            console.log(error);
+        } 
+        // finally {
+        //     mongoose.connection.close();
+        // }
+    }
+}
 
 // to replace with database /////////
 // const items = ["Buy food", "Cook food", "Eat food"];  // JS array can be pushed etc. but can't be reaasigned
