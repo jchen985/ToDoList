@@ -8,17 +8,15 @@
 
 <div class="box">
     <!-- display array of todo list items using for loop and EJS -->
-    <ul>
-        <% for (var i=0; i < newListItems.length; i++){ %>
-            <div class="item">
-                <!-- using check box instead of bullet points -->
-                <input type="checkbox">
-                <p>
-                    <%= newListItems[i] %>
-                </p>
-            </div>
-            <% } %>
-    </ul>
+        <% newListItems.forEach((item) => { %>
+            <form action="">
+                <div class="item">
+                    <!-- using check box instead of bullet points -->
+                    <input type="checkbox">
+                    <p> <%= item.name %> </p>
+                </div>
+            </form>
+        <% }) %>
 
     <form class="item" action="/" method="post">
         <!-- placeholder for input indicator -->

@@ -38,27 +38,6 @@ const itemSchema = {
 
 const Item = mongoose.model("Item", itemSchema);
 
-// const defaultItems = [
-//     {name: "Welcome to your todolist"}, 
-//     {name: "Hit the + button to add a new item"}, 
-//     {name: "<-- Hit this to delete an item"}
-// ];
-
-// createManyItems(defaultItems);
-
-/* Create items and save into DB */
-// async function createManyItems (items) {
-//     try {
-//         await connectDB();
-//         const savedItems = await Item.create(items);
-//         return savedItems;
-//     } catch (error) {
-//         console.log(error);
-//     } finally {
-//         mongoose.connection.close();
-//     }
-// }
-
 // newItem ("Welcome to your todolist");
 // newItem ("Hit the + button to add a new item");
 // newItem ("<-- Hit this to delete an item");
@@ -69,11 +48,11 @@ const defaultItems = [
     "<-- Hit this to delete an item"
 ];
 
-saveDefault(defaultItems);
+// saveDefault(defaultItems);
 
 /* Create Default items
     insert them into todolistDB
- */
+*/
 async function saveDefault (defaultItems) {
     await defaultItems.forEach(item => {
         newItem(item);
@@ -131,29 +110,50 @@ async function insert (items){
 // const workItems = [];
 ////////
 
-app.get("/", function(req, res) {
+app.get("/", async function(req, res) {
     
     let day = date.getDate();
+
     // when res.render(), we need to provide all placeholders' value in the Template
-    res.render("list", {
-        listTitle: day,
-        newListItems: items
+    await Item.find().then((foundItems) => {
+        
+        // only add default items when database is empty
+        // if not empty, render the array of items
+        if (foundItems.length == 0){
+            saveDefault(defaultItems);
+            res.redirect("/");
+        } else {
+            console.log("not empty");  /////////////////
+            res.render("list", {
+                listTitle: day,
+                newListItems: foundItems
+            });
+        }
+
+    }).catch((err) => {
+        console.log(err);
     });
-    
+   
 });
 
 app.post("/", function(req, res) {
 
-    let item = req.body.newItem;
+    const itemName = req.body.newItem;
+    const item = new Item({
+        name: itemName
+    });
+    item.save();
 
-    // since <form> has action on "/", the post method always posts to "/" instead of "/work" on "/work" page
-    if (req.body.list === "Work List"){
-        workItems.push(item);
-        res.redirect("/work");
-    }else {
-        items.push(item);
-        res.redirect("/");
-    }
+    res.redirect("/");
+
+    // // since <form> has action on "/", the post method always posts to "/" instead of "/work" on "/work" page
+    // if (req.body.list === "Work List"){
+    //     workItems.push(item);
+    //     res.redirect("/work");
+    // }else {
+    //     items.push(item);
+    //     res.redirect("/");
+    // }
 
     // redirect to home route
     // when a POST request is triggered on home route, we save the value of new item 
