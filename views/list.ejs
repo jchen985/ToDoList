@@ -8,16 +8,19 @@
 
 <div class="box">
     <!-- display array of todo list items using for loop and EJS -->
+    <!-- form responsible for deleting items -->
         <% newListItems.forEach((item) => { %>
-            <form action="">
+            <form action="/delete" method="post">
                 <div class="item">
                     <!-- using check box instead of bullet points -->
-                    <input type="checkbox">
+                    <!-- store the item.id as value attribute of the checkbox-typed <input> -->
+                    <input type="checkbox" name="checkbox" value="<%= item.id %>" onChange="this.form.submit()">
                     <p> <%= item.name %> </p>
                 </div>
             </form>
         <% }) %>
-
+    
+    <!-- form responsible for adding new items -->
     <form class="item" action="/" method="post">
         <!-- placeholder for input indicator -->
         <!-- autocomplete turned off (no auto suggestions) -->

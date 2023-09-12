@@ -146,20 +146,23 @@ app.post("/", function(req, res) {
 
     res.redirect("/");
 
-    // // since <form> has action on "/", the post method always posts to "/" instead of "/work" on "/work" page
-    // if (req.body.list === "Work List"){
-    //     workItems.push(item);
-    //     res.redirect("/work");
-    // }else {
-    //     items.push(item);
-    //     res.redirect("/");
-    // }
-
     // redirect to home route
     // when a POST request is triggered on home route, we save the value of new item 
     // and redirect to home route, which brings to app.get() GET request
-    // nad it will res.render() the list template passing in new parameters value
+    // and it will res.render() the list template passing in new parameters value
     
+});
+
+app.post("/delete", async function(req, res){
+
+    const checkedItemId = req.body.checkbox;
+    
+    await Item.findByIdAndDelete(checkedItemId).then(() => {
+        console.log("Deletion of checked item was successful");
+        res.redirect("/");
+    }).catch((err) => {
+        console.log(err);
+    })
 });
 
 app.get("/work", function(req, res) {
