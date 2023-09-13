@@ -23,12 +23,6 @@ db.on("open", () => {
   console.log("database running successfully");
 })
 
-// async function connectDB() {
-//     await mongoose.connect(dbServer).then(() => {
-//         console.log("DB connected")}).catch((err) => {
-//             console.log(err)});
-// }
-
 const itemSchema = {
     name: {
         type: String,
@@ -38,24 +32,20 @@ const itemSchema = {
 
 const Item = mongoose.model("Item", itemSchema);
 
-// newItem ("Welcome to your todolist");
-// newItem ("Hit the + button to add a new item");
-// newItem ("<-- Hit this to delete an item");
-
 const defaultItems = [
     "Welcome to your todolist", 
     "Hit the + button to add a new item", 
     "<-- Hit this to delete an item"
 ];
 
-// saveDefault(defaultItems);
-
 /* Create Default items
     insert them into todolistDB
 */
 async function saveDefault (defaultItems) {
-    await defaultItems.forEach(item => {
-        newItem(item);
+    defaultItems.forEach(async item => {
+        await newItem(item).catch(err => {
+            throw err;
+        });
     });
 }
 
@@ -68,40 +58,51 @@ async function newItem (name) {
     });
     console.log("inserting " + item);
 
-    try {
-        await insert (item);
-    } catch (error) {
-        console.log(error);
-    }
-    // finally {
-    //     mongoose.connection.close();
+    // try {
+    //     await insert (item);
+    // } catch (error) {
+    //     console.log(error);
     // }
+
+    await insert(item).catch((err) => {
+        // console.log(err);
+        throw err;
+    });
+
 }
 
 /* Insert Single or Multiple Items */
 async function insert (items){
     if (Array.isArray(items)) {
-        try {
-            // await connectDB();
-            await Item.insertMany(items);
-            console.log("Successfule insertion");
-        } catch (error) {
-            console.log(error);
-        } 
-        // finally {
-        //     mongoose.connection.close();
-        // }
+        // try {
+        //     await Item.insertMany(items);
+        //     console.log("Successfule insertion");
+        // } catch (error) {
+        //     console.log(error);
+        // } 
+        
+        await Item.insertMany(items).then(() => {
+            console.log("Successful insertion of multiple items");
+        }).catch((err) => {
+            // console.log(err);
+            throw err;
+        });
+        
     } else {
-        try {
-            // await connectDB();
-            await items.save();
-            console.log("Successfule insertion");
-        } catch (error) {
-            console.log(error);
-        } 
-        // finally {
-        //     mongoose.connection.close();
-        // }
+        // try {
+        //     await items.save();
+        //     console.log("Successfule insertion");
+        // } catch (error) {
+        //     console.log(error);
+        // } 
+        
+        await items.save().then(() => {
+            console.log("Successful insertion of one item");
+        }).catch((err) => {
+            // console.log(err);
+            throw err;
+        })
+
     }
 }
 
@@ -115,12 +116,14 @@ app.get("/", async function(req, res) {
     let day = date.getDate();
 
     // when res.render(), we need to provide all placeholders' value in the Template
-    await Item.find().then((foundItems) => {
+    await Item.find().then(async (foundItems) => {
         
         // only add default items when database is empty
         // if not empty, render the array of items
         if (foundItems.length == 0){
-            saveDefault(defaultItems);
+            await saveDefault(defaultItems).catch((err) => {
+                console.error(err);
+            });
             res.redirect("/");
         } else {
             console.log("not empty");  /////////////////
@@ -131,7 +134,7 @@ app.get("/", async function(req, res) {
         }
 
     }).catch((err) => {
-        console.log(err);
+        console.error(err);
     });
    
 });
@@ -142,7 +145,11 @@ app.post("/", function(req, res) {
     const item = new Item({
         name: itemName
     });
-    item.save();
+    item.save().then(() => {
+        console.log("Successfully added an item");
+    }).catch(err => {
+        console.error(err);
+    });
 
     res.redirect("/");
 
