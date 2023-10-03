@@ -106,11 +106,10 @@ async function insert (items){
     }
 }
 
-// to replace with database /////////
-// const items = ["Buy food", "Cook food", "Eat food"];  // JS array can be pushed etc. but can't be reaasigned
-// const workItems = [];
-////////
-
+/* main page get()
+if empty database, add default items
+otherwise display all items
+*/
 app.get("/", async function(req, res) {
     
     let day = date.getDate();
@@ -139,6 +138,10 @@ app.get("/", async function(req, res) {
    
 });
 
+/* main page post()
+add new item to database
+then refresh the main page
+*/
 app.post("/", function(req, res) {
 
     const itemName = req.body.newItem;
@@ -160,6 +163,10 @@ app.post("/", function(req, res) {
     
 });
 
+/* /delete page post()
+delte an item from database
+then refresh the main page
+*/
 app.post("/delete", async function(req, res){
 
     const checkedItemId = req.body.checkbox;
@@ -172,17 +179,20 @@ app.post("/delete", async function(req, res){
     })
 });
 
-app.get("/work", function(req, res) {
-    res.render("list", {
-        listTitle: "Work List",
-        newListItems: workItems
-    });
+/* dynamic page for custom item list
+*/
+app.get("/:route", function(req, res){
+    console.log(req.params.route);
 });
 
+/* imformation page
+*/
 app.get("/about", function(req, res) {
     res.render("about");
 });
 
+/* open the server gateway
+*/
 app.listen(3000, function() {
     console.log("Server started on port 3000");
 });
