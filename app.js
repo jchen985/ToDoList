@@ -123,7 +123,7 @@ otherwise display all items
 */
 app.get("/", async function(req, res) {
     
-    let day = date.getDate();
+    // let day = date.getDate();
 
     // when res.render(), we need to provide all placeholders' value in the Template
     await Item.find().then(async (foundItems) => {
@@ -138,8 +138,9 @@ app.get("/", async function(req, res) {
         } else {
             console.log("not empty");  /////////////////
             res.render("list", {
-                listTitle: day,
-                newListItems: foundItems
+                listTitle: "Main list",
+                newListItems: foundItems,
+                isCustom: false ///
             });
         }
 
@@ -154,19 +155,36 @@ app.get("/", async function(req, res) {
 add new item to database
 then refresh the main page
 */
-app.post("/", function(req, res) {
+app.post("/", async function(req, res) {
 
     const itemName = req.body.newItem;
+    const listName = req.body.list;
+
     const item = new Item({
         name: itemName
     });
-    item.save().then(() => {
-        console.log("Successfully added an item");
-    }).catch(err => {
-        console.error(err);
-    });
 
-    res.redirect("/");
+    if (listName === "Main list"){
+        await item.save().then(() => {
+            console.log("Successfully added an item");
+        }).catch(err => {
+            console.error(err);
+        });
+    
+        res.redirect("/");
+    }else{  // need to add this item to the itemList of that custom list page 
+        await List.findOne({name: listName}).then(async foundList => {
+            foundList.items.push(item);
+            await foundList.save().catch(err => {
+                throw err;
+            });
+
+            res.redirect("/" + listName);
+        }).catch(err => {
+            console.log(err);
+        });
+    }
+
 
     // redirect to home route
     // when a POST request is triggered on home route, we save the value of new item 
@@ -243,7 +261,11 @@ app.get("/:customListName", async function(req, res){
         }else {  // show an existing list
             console.log("duplicated list name");
 
-            res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
+            res.render("list", {
+                listTitle: foundList.name, 
+                newListItems: foundList.items,
+                isCustom: true
+            });
 
         }
     }).catch(err => {
