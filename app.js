@@ -38,6 +38,14 @@ const defaultItems = [
     "<-- Hit this to delete an item"
 ];
 
+// for custom dynamic ToDoList page
+const ListSchema = {
+    name: String,
+    items: [itemSchema]  // type of array of itemSchema items
+}
+
+const List = mongoose.model("List", ListSchema);
+
 /* Create Default items
     insert them into todolistDB
 */
@@ -48,6 +56,7 @@ async function saveDefault (defaultItems) {
         });
     });
 }
+
 
 /* Create new Item of todolist 
     and insert into todolistDB
@@ -70,6 +79,7 @@ async function newItem (name) {
     });
 
 }
+
 
 /* Insert Single or Multiple Items */
 async function insert (items){
@@ -106,6 +116,7 @@ async function insert (items){
     }
 }
 
+
 /* main page get()
 if empty database, add default items
 otherwise display all items
@@ -138,6 +149,7 @@ app.get("/", async function(req, res) {
    
 });
 
+
 /* main page post()
 add new item to database
 then refresh the main page
@@ -163,6 +175,7 @@ app.post("/", function(req, res) {
     
 });
 
+
 /* /delete page post()
 delte an item from database
 then refresh the main page
@@ -179,17 +192,66 @@ app.post("/delete", async function(req, res){
     })
 });
 
-/* dynamic page for custom item list
-*/
-app.get("/:route", function(req, res){
-    console.log(req.params.route);
-});
 
 /* imformation page
 */
 app.get("/about", function(req, res) {
     res.render("about");
 });
+
+
+// app.get('/favicon.ico', (req,res)=>{
+//     return 'your faveicon'
+// })
+
+
+/* dynamic page for custom item list
+*/
+app.get("/:customListName", async function(req, res){
+    const customListName = req.params.customListName;
+    console.log(customListName);
+    
+    // check duplicate list name
+    await List.findOne({name: customListName}).then(async foundList => {
+        if (foundList === null){ // create new list
+            console.log("no match");
+
+            let defaultList = [];
+
+            defaultItems.forEach(name => {
+                let item = Item ({
+                    name: name
+                });
+
+                defaultList.push(item);
+            })
+
+            const list = new List({
+                name: customListName,
+                items: defaultList
+            })
+
+            await list.save().then(() => {
+                console.log("Successful insertion of one item");
+            }).catch((err) => {
+                throw err;
+            })
+            
+            // redirect to the new custom list site
+            res.redirect("/" + customListName);
+
+        }else {  // show an existing list
+            console.log("duplicated list name");
+
+            res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
+
+        }
+    }).catch(err => {
+        console.log(err);
+    })
+    
+});
+
 
 /* open the server gateway
 */
