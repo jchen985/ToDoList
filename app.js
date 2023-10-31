@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const date = require(__dirname + "/date.js");
 const mongoose = require("mongoose");
 const dbServer = "mongodb://127.0.0.1:27017/todolistDB";
+const _ = require("lodash");
 
 const app = express();
 app.set("view engine", "ejs");
@@ -123,7 +124,7 @@ otherwise display all items
 */
 app.get("/", async function(req, res) {
     
-    // let day = date.getDate();
+    let day = date.getDate();
 
     // when res.render(), we need to provide all placeholders' value in the Template
     await Item.find().then(async (foundItems) => {
@@ -138,9 +139,9 @@ app.get("/", async function(req, res) {
         } else {
             console.log("not empty");  /////////////////
             res.render("list", {
-                listTitle: "Main list",
+                listTitle: day,
                 newListItems: foundItems,
-                isCustom: false ///
+                isCustom: false 
             });
         }
 
@@ -158,13 +159,15 @@ then refresh the main page
 app.post("/", async function(req, res) {
 
     const itemName = req.body.newItem;
-    const listName = req.body.list;
+    const listName = req.body.listName;
+    const isCustom = req.body.isCustom;
 
     const item = new Item({
         name: itemName
     });
 
-    if (listName === "Main list"){
+    // check what kind of list (custom / main list)
+    if (isCustom === "false"){
         await item.save().then(() => {
             console.log("Successfully added an item");
         }).catch(err => {
@@ -201,13 +204,33 @@ then refresh the main page
 app.post("/delete", async function(req, res){
 
     const checkedItemId = req.body.checkbox;
+    const listName = req.body.listName;
+    const isCustom = req.body.isCustom;
+
+    if (isCustom === "false"){  // is main list
+
+        await Item.findByIdAndDelete(checkedItemId).then(() => {
+            console.log("Deletion of checked item was successful");
+            res.redirect("/");
+        }).catch((err) => {
+            console.log(err);
+        })
+
+    } else{  // custom list
+
+        //search through the array of listSchema of a List entry
+        console.log("custom"); ///
+        await List.findOneAndUpdate(
+            {name: listName},  // filter
+            {$pull: {items: {_id: checkedItemId}}},  // update value
+            {new: true}  // return the new doc with updated value
+        ).then(foundList => {
+           res.redirect("/" + foundList.name);
+        }).catch(err => {
+            console.log(err);
+        });
+    }
     
-    await Item.findByIdAndDelete(checkedItemId).then(() => {
-        console.log("Deletion of checked item was successful");
-        res.redirect("/");
-    }).catch((err) => {
-        console.log(err);
-    })
 });
 
 
@@ -218,15 +241,10 @@ app.get("/about", function(req, res) {
 });
 
 
-// app.get('/favicon.ico', (req,res)=>{
-//     return 'your faveicon'
-// })
-
-
 /* dynamic page for custom item list
 */
 app.get("/:customListName", async function(req, res){
-    const customListName = req.params.customListName;
+    const customListName = _.capitalize(req.params.customListName);
     console.log(customListName);
     
     // check duplicate list name

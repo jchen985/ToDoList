@@ -17,6 +17,9 @@
                     <input type="checkbox" name="checkbox" value="<%= item.id %>" onChange="this.form.submit()">
                     <p> <%= item.name %> </p>
                 </div>
+                <!-- hidden input to submit value to Express.js -->
+                <input type="hidden" name="listName" value="<%= listTitle %>">
+                <input type="hidden" name="isCustom" value="<%= isCustom %>">
             </form>
         <% }) %>
     
@@ -26,7 +29,8 @@
         <!-- autocomplete turned off (no auto suggestions) -->
         <input type="text" id="todo" name="newItem" placeholder="New Item" autocomplete="off">
         <!-- the name and value attribute helps us to determine which list to add item to -->
-        <button type="submit" name="list" value=<%= listTitle %>>+</button>
+        <button type="submit" name="listName" value=<%= listTitle %>>+</button>
+        <input type="hidden" name="isCustom" value="<%= isCustom %>">
     </form>
 
 </div>
