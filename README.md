@@ -1,3 +1,3 @@
-with Node.js installer command: npm i to install all dependencies
+with Node.js installer command: `npm i` to install all dependencies
 
-type node app.js to run the website on localhost:3000 
+type `node app.js` to run the website on `localhost:3000`
